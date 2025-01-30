@@ -10,8 +10,10 @@ import pilgram2
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 from pydantic_extra_types.color import Color
 
+from ....filters.stablediffusion import StableDiffusionFilter
 from ....utils.exceptions import PipelineError
 from ....utils.helper import get_user_file
+from ...config import appconfig
 from ...config.models.models import TextsConfig
 from ..context import ImageContext
 from ..pipeline import NextStep
@@ -19,32 +21,39 @@ from ..pipeline import NextStep
 logger = logging.getLogger(__name__)
 
 
-class Pilgram2Step:
+class FilterStep:
     def __init__(self, filter: str) -> None:
         self.filter = filter
 
     def __call__(self, context: ImageContext, next_step: NextStep) -> None:
-        try:
-            pilgram2_filter_fun = getattr(pilgram2, self.filter)
-        except Exception as exc:
-            raise PipelineError(f"pilgram2 filter {self.filter} does not exist") from exc
+        if appconfig.mediaprocessing.filtertype == "pilgram2":
+            try:
+                pilgram2_filter_fun = getattr(pilgram2, self.filter)
+            except Exception as exc:
+                raise PipelineError(f"pilgram2 filter {self.filter} does not exist") from exc
 
-        # apply filter
-        filtered_image: Image.Image = pilgram2_filter_fun(context.image.copy())
+            # apply filter
+            filtered_image: Image.Image = pilgram2_filter_fun(context.image.copy())
 
-        if context.image.mode == "RGBA":
-            # remark: "P" mode is palette (like GIF) that could have a transparent color defined also
-            # since we do not use transparent GIFs currently we can ignore here.
-            # P would not have an alphachannel but only a transparent color defined.
-            logger.debug("need to convert to rgba and readd transparency mask to filtered image")
-            # get alpha from original image
-            a = context.image.getchannel("A")
-            # get rgb from filtered image
-            r, g, b = filtered_image.split()
-            # and merge both
-            filtered_transparent_image = Image.merge(context.image.mode, (r, g, b, a))
+            if context.image.mode == "RGBA":
+                # remark: "P" mode is palette (like GIF) that could have a transparent color defined also
+                # since we do not use transparent GIFs currently we can ignore here.
+                # P would not have an alphachannel but only a transparent color defined.
+                logger.debug("need to convert to rgba and readd transparency mask to filtered image")
+                # get alpha from original image
+                a = context.image.getchannel("A")
+                # get rgb from filtered image
+                r, g, b = filtered_image.split()
+                # and merge both
+                filtered_transparent_image = Image.merge(context.image.mode, (r, g, b, a))
 
-            filtered_image = filtered_transparent_image
+                filtered_image = filtered_transparent_image
+
+        elif appconfig.mediaprocessing.filtertype == "stablediffusion":
+            try:
+                filtered_image: Image.Image = StableDiffusionFilter(filter, context.image.copy())
+            except Exception as exc:
+                raise PipelineError(f"error processing the filter {self.filter}") from exc
 
         context.image = filtered_image
         filtered_image = None

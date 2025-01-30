@@ -122,12 +122,15 @@ class GroupUiSettings(BaseModel):
         default="Scan above code with your phone.",
         description="Display text below the QR code.",
     )
-    gallery_show_filter: bool = Field(
-        default=True,
-        description="Show instagramlike filter (pilgram2).",
+    gallery_show_filter: Literal["none", "pilgram2", "stablediffusion"] = Field(
+        default="none",
+        description="Select which filter type should be use in the app (StableDiffusion or pilgram2).",
     )
     gallery_filter_userselectable: list[PilgramFilter] = Field(
         default=[e for e in PilgramFilter],
+    )
+    gallery_filter_stablediffusion_userselectable: list[StableDiffusionFilter] = Field(
+        default=[e for e in StableDiffusionFilter],
     )
     gallery_show_download: bool = Field(
         default=True,

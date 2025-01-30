@@ -991,6 +991,7 @@ dependencies = [
     { name = "sqlalchemy" },
     { name = "sse-starlette" },
     { name = "uvicorn" },
+    { name = "webuiapi" },
     { name = "wigglecam" },
 ]
 
@@ -1039,6 +1040,7 @@ requires-dist = [
     { name = "sqlalchemy", specifier = ">=2.0.37" },
     { name = "sse-starlette", specifier = ">=2.2.0" },
     { name = "uvicorn", specifier = ">=0.24" },
+    { name = "webuiapi" },
     { name = "wigglecam" },
 ]
 
@@ -1709,6 +1711,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/4b/4d/938bd85e5bf2edeec766267a5015ad969730bb91e31b44021dfe8b22df6c/uvicorn-0.34.0.tar.gz", hash = "sha256:404051050cd7e905de2c9a7e61790943440b3416f49cb409f965d9dcd0fa73e9", size = 76568 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/61/14/33a3a1352cfa71812a3a21e8c9bfb83f60b0011f5e36f2b1399d51928209/uvicorn-0.34.0-py3-none-any.whl", hash = "sha256:023dc038422502fa28a09c7a30bf2b6991512da7dcdb8fd35fe57cfc154126f4", size = 62315 },
+]
+
+[[package]]
+name = "webuiapi"
+version = "0.9.17"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pillow" },
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/53/a7/5d6c6a10456a642568e3c02c3400963d305b2b3caccdaa305397396a41ea/webuiapi-0.9.17.tar.gz", hash = "sha256:b37effbbd27dea550152391285dc26a9b15e2a7395b0d1af320e637e20b425a7", size = 28865 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b4/79/bd7390a49e0bc7cfc348cbc3469d50424a2eba3fdac9378e325852399433/webuiapi-0.9.17-py3-none-any.whl", hash = "sha256:5ee61943405b6a9b889e36114a6c1e386d83597c1e369796ab871080489443e9", size = 22563 },
 ]
 
 [[package]]

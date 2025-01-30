@@ -3,6 +3,8 @@ AppConfig class providing central config
 
 """
 
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -65,4 +67,8 @@ class GroupMediaprocessing(BaseModel):
         ge=1,
         le=50,
         description="Tolerance for color (H) on chromakey color removal.",
+    )
+    filtertype: Literal["pilgram2", "stablediffusion"] = Field(
+        default="pilgram2",
+        description="Select the type of filter system available to the user.",
     )
