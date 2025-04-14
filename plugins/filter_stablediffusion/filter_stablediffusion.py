@@ -9,7 +9,6 @@ from photobooth.plugins import hookimpl
 from photobooth.plugins.base_plugin import BaseFilter
 from .filterpresets_sd import *
 from . import config
-from .webuiapi import *
 from .config import FilterStablediffusionConfig, available_filter
 
 logger = logging.getLogger(__name__)
@@ -60,79 +59,20 @@ class FilterStablediffusion(BaseFilter[config.FilterStablediffusionConfig]):
         # Combine the Base Paramters and the special filter parameters
         
         params = merge_nested_dicts(baseparams, filterparams )
+        if( self._config.userselectable_services == "stability_ai" ):
+            from .runner.stability_ai import StabilityAIFilter
+            stability_ai = StabilityAIFilter( filter )
+            image = stability_ai.run( params, image )
         
-        from .stability_ai import StabilityAIFilter
-        stability_ai = StabilityAIFilter( filter )
-        image = stability_ai( params, image )
+        if( self._config.userselectable_services == "sdwebui-forge" ):
+            params["sdwebui_hostname"] = self._config.sdwebui_hostname
+            from .runner.sdwebui_forge import SDWebUIFilter
+            sdwebui_forge = SDWebUIFilter( filter )
+            image = sdwebui_forge.run( params, image )
+
         return image
         
-        # create API client with custom host, port
-        # TODO: create configuration parameters
-        #api = webuiapi.WebUIApi(host="127.0.0.1", port=7860)
-        api = WebUIApi(host="192.168.56.1", port=7860)
-        options = {}
-        options['sd_model_checkpoint'] = params["model"]
-        params["prompt"] += ", energetic atmosphere capturing thrill of the moment, clear details, best quality, extremely detailed cg 8k wallpaper, volumetric lighting, 4k, best quality, masterpiece, ultrahigh res, group photo, sharp focus, (perfect image composition)"
-
-        api.set_options(options)
-        params.pop('model', None)
-
-        controlnets = []
-        openpose = ControlNetUnit(
-            module=params["openpose"]["module"],
-            model=params["openpose"]["model"],
-            weight=params["openpose"]["weight"],
-            threshold_a = 0.5,
-            threshold_b = 0.5,
-            resize_mode="Crop and Resize"
-        )
-        #openpose.input_mode = "simple"
-        #openpose.save_detected_map=True
-        #openpose.use_preview_as_input= False,
-        params.pop('openpose', None)
-        controlnets.append(openpose)
-
-        depth = ControlNetUnit(
-            module=params["depth"]["module"], 
-            model=params["depth"]["model"], 
-            weight=params["depth"]["weight"],
-            threshold_a = 0.5,
-            threshold_b = 0.5,
-            resize_mode="Crop and Resize"
-        )
-        controlnets.append(depth)
-        params.pop('depth', None)
-
-        softedge = ControlNetUnit(
-            module=params["softedge"]["module"],
-            model=params["softedge"]["model"],
-            weight=params["softedge"]["weight"],
-            threshold_a = 0.5,
-            threshold_b = 0.5,
-            resize_mode="Crop and Resize"
-        )
-        controlnets.append(softedge)
-
-        params.pop('softedge', None)
-
-        params["controlnet_units"] = controlnets
-        params["images"] = [image]
-        params["negative_prompt"] = params["negative_prompt"]
-        params["seed"] = params["seed"]
-        params["batch_size"] = params["batch_size"]
-        params["steps"] =  params["steps"]
-        params["height"] = params["height"]
-        params["width"] = params["width"]
-        params["sampler_index"] = ""
-        params["denoising_strength"] = float(params["denoising_strength"])
-        params["cfg_scale"] = float(params["cfg_scale"])
-        result = api.img2img(**params)
-        #for x in params["images"]:
-        #    print( b64_img(x))
-        #print( repr(params) )
-        filtered_image = result.image
-
-        return filtered_image
+        
 
 
 def to_camelcase(s):

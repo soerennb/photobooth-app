@@ -7,14 +7,16 @@ from re import sub
 import logging
 from PIL import Image
 
-from .filterpresets_sd import *
+from ..filterpresets_sd import *
 logger = logging.getLogger(__name__)
+from .baserunner import BaseRunner
 
-class StabilityAIFilter:
-    def __init__(self, filter: str) -> None:
-        self.filter = filter
 
-    def __call__(self, params, image: Image.Image) -> Image.Image:
+class StabilityAIFilter(BaseRunner):
+    def __init__(self, api_key: str):
+        super().__init__(api_key=api_key)
+
+    def run(self, params, image: Image.Image) -> Image.Image:
         try:
            
             import requests
@@ -28,9 +30,9 @@ class StabilityAIFilter:
             img_str = img_str.decode("ascii")
 
             url = "https://api.stability.ai/v2beta/stable-image/control/structure"
-            apikey = ""
+            
             headers={
-                "authorization": "Bearer " + apikey,
+                "authorization": "Bearer " + self.api_key,
                 "accept": "image/*"
             }
             payload = {
@@ -51,7 +53,7 @@ class StabilityAIFilter:
 
         except Exception as exc:
             logger.debug( "Error  processing the request from Stability.ai: " + repr ( response))
-            raise RuntimeError(f"error processing the filter {self.filter}") from exc
+            raise RuntimeError(f"error processing the filter {params["name"]}") from exc
 
     def __repr__(self) -> str:
         return self.__class__.__name__
